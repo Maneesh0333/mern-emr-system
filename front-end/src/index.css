@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --clay: #c4632a;
+  --clay-light: #e8895a;
+  --clay-dark: #8b3e15;
+  --clay-light-dark: #9c451a;
+  --cream: #faf5ed;
+  --warm-white: #fff9f2;
+  --white: #fff;
+  --earth: #2c1a0e;
+  --earth-mid: #5c3a1e;
+  --earth-light: #6b4a2d;
+  --khaki: #d4b896;
+  --sage: #7a9e7e;
+  --gold: #d4a847;
+  --ink: #1c1008;
+
+  --border-1: rgba(196,99,42,0.12)
+}
