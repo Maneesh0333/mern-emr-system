@@ -34,3 +34,16 @@ A full-stack MERN application for managing hospital appointments, doctor schedul
 - MongoDB
 - JWT Authentication
 
+## Environment Variables
+Create a .env file inside the backend folder.
+cd backend
+touch .env
+
+Add the following variables:
+- MONGO_DB_URL=mongodb+srv://<username>:<password>@cluster0.mongodb.net/EMRsystem
+- PORT=5000
+- FRONTEND_URL=http://localhost:5173
+- REFRESH_TOKEN_SECRET=your_refresh_token_secret
+- ACCESS_TOKEN_SECRET=your_access_token_secret
+- NODE_ENV=development
+
