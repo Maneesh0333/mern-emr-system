@@ -47,3 +47,7 @@ Add the following variables:
 - ACCESS_TOKEN_SECRET=your_access_token_secret
 - NODE_ENV=development
 
+## 🎥 Demo
+https://github.com/user-attachments/assets/9670c676-f668-472e-9902-ba2074cc9185
+
+
