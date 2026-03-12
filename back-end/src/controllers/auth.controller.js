@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import Session from "../models/Session.model.js";
+import { date } from "yup";
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -26,7 +27,7 @@ export const login = asyncHandler(async (req, res) => {
   const accessToken = jwt.sign(
     { id: user._id, role: user.role },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" },
+    { expiresIn: "1m" },
   );
 
   const refreshToken = jwt.sign(
@@ -174,5 +175,20 @@ export const refreshToken = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     accessToken: newAccessToken,
+  });
+});
+
+export const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select(
+    "_id name email phone role",
+  );
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: user,
   });
 });

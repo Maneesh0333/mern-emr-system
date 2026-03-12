@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { useDepartments } from "../../hooks/Receptionists/useDepartments";
 import { useDoctors } from "../../hooks/Receptionists/useDoctors";
-import { useDoctorSchedule } from "../../hooks/Receptionists/useDoctorSchedule ";
 import BookingModal from "../BookingModal";
 import { useAppointments } from "../../hooks/Receptionists/useAppointments";
+import { useDoctorSchedule } from "../../hooks/Receptionists/useDoctorSchedule ";
 
 function getTodayStr() {
   return new Date().toISOString().split("T")[0];
 }
 
+// Format time for display
 function formatTime(time: string) {
   const [h, m] = time.split(":").map(Number);
   return `${h % 12 || 12}:${m.toString().padStart(2, "0")} ${
     h >= 12 ? "PM" : "AM"
   }`;
+}
+
+// Normalize time to HH:mm
+function normalizeTime(time: string) {
+  const [h, m] = time.split(":").map(Number);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 export default function Scheduler() {
@@ -27,30 +34,29 @@ export default function Scheduler() {
   const { data: schedule } = useDoctorSchedule(selectedDoctor, selectedDate);
   const { data: appointments = [] } = useAppointments(
     selectedDoctor,
-    selectedDate,
+    selectedDate
   );
 
   const doctor = doctors.find((d: any) => d._id === selectedDoctor);
 
+  // Check if a slot is in the past
   function isPastSlot(time: string) {
     const today = getTodayStr();
-
     if (selectedDate !== today) return false;
 
     const now = new Date();
     const [h, m] = time.split(":").map(Number);
-
     const slotDate = new Date();
-    slotDate.setHours(h, m, 0);
+    slotDate.setHours(h, m, 0, 0);
 
     return slotDate < now;
   }
 
+  // Generate slots based on schedule and appointments
   function generateSlots() {
     if (!schedule || !schedule.start || !schedule.end) return [];
 
     const { start, end, slot } = schedule;
-
     const [sh, sm] = start.split(":").map(Number);
     const [eh, em] = end.split(":").map(Number);
 
@@ -62,10 +68,11 @@ export default function Scheduler() {
     while (current + slot <= endMin) {
       const h = Math.floor(current / 60);
       const m = current % 60;
-
       const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 
-      const booked = appointments.some((a: any) => a.time === time);
+      const booked = appointments.some(
+        (a: any) => normalizeTime(a.time) === normalizeTime(time)
+      );
 
       slots.push({
         time,
@@ -97,7 +104,6 @@ export default function Scheduler() {
           className="border p-2 rounded"
         >
           <option value="">All Departments</option>
-
           {departments.map((dep: string) => (
             <option key={dep} value={dep}>
               {dep}
@@ -112,7 +118,6 @@ export default function Scheduler() {
           className="border p-2 rounded"
         >
           <option value="">Select Doctor</option>
-
           {doctors.map((doc: any) => (
             <option key={doc._id} value={doc._id}>
               {doc.name}
@@ -141,22 +146,18 @@ export default function Scheduler() {
         <div className="grid grid-cols-4 gap-3">
           {slots.map((slot) => {
             const past = isPastSlot(slot.time);
-
             return (
               <button
                 key={slot.time}
                 disabled={slot.status === "booked" || past}
                 onClick={() => setSelectedSlot(slot)}
-                className={`p-3 rounded border text-sm
-
-    ${
-      slot.status === "booked"
-        ? "bg-red-300 cursor-not-allowed"
-        : past
-          ? "bg-gray-200"
-          : "bg-green-500 text-white hover:bg-green-600"
-    }
-  `}
+                className={`p-3 rounded border text-sm ${
+                  slot.status === "booked"
+                    ? "bg-red-300 cursor-not-allowed"
+                    : past
+                    ? "bg-gray-200 cursor-not-allowed"
+                    : "bg-green-500 text-white hover:bg-green-600"
+                }`}
               >
                 {slot.label}
               </button>
@@ -165,7 +166,7 @@ export default function Scheduler() {
         </div>
       )}
 
-      {/* Booking */}
+      {/* Booking Modal */}
       {selectedSlot && doctor && schedule && (
         <BookingModal
           doctor={doctor}

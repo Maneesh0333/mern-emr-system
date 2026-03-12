@@ -5,8 +5,6 @@ import SearchInput from "../Shared/SearchInput";
 import Table from "../Shared/Table";
 import SideSheet from "../Shared/SideSheet";
 import Button from "../Shared/Button";
-
-import DoctorForm from "../forms/DoctorForm";
 import { getChips } from "../../utils/Filterschips";
 import ReceptionistsRow from "./ReceptionistsRow";
 import {
@@ -39,11 +37,11 @@ export default function Receptionists() {
   return (
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
-        title="Doctors"
-        description={`${data?.totalReceptionists} registered doctors`}
+        title="Receptionists"
+        description={`${data?.totalReceptionists} registered Receptionists`}
         children={
           <Button
-            label="+ Add Doctor"
+            label="+ Add Receptionists"
             onClick={() => {
               setSelectedDoctor(null);
               setOpen(true);
@@ -62,7 +60,7 @@ export default function Receptionists() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search doctor..."
+          placeholder="Search Receptionists..."
           className="w-70 max-lg:w-full"
         />
       </div>
@@ -98,11 +96,11 @@ export default function Receptionists() {
           setOpen(false);
           setSelectedDoctor(null);
         }}
-        title={selectedDoctor ? "Edit Doctor" : "Add Doctor"}
+        title={selectedDoctor ? "Edit Receptionists" : "Add Receptionists"}
         discription={
           selectedDoctor
-            ? "Update doctor details"
-            : "Fill details to create a doctor"
+            ? "Update Receptionists details"
+            : "Fill details to create a Receptionists"
         }
       >
         <ReceptionistForm

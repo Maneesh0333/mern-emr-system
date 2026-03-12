@@ -10,7 +10,6 @@ import Header from "./Header";
 import InputField from "../Shared/InputField";
 import Button from "./Button";
 
-
 const loginSchema = yup.object({
   email: yup
     .string()
@@ -26,7 +25,6 @@ const loginSchema = yup.object({
     .matches(/[A-Za-z]/, "Password must contain at least one letter")
     .matches(/[0-9]/, "Password must contain at least one number"),
 });
-
 
 type LoginFormType = yup.InferType<typeof loginSchema>;
 // ---------------------
@@ -93,10 +91,10 @@ function Login() {
         return;
       }
       login(data.data);
-        toast.success(data.message);
-        navigate("/");
+      toast.success(data.message);
+      navigate("/");
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       // Network error
       if (!error.response) {
         toast.error("Network error, please try again later.");
@@ -135,49 +133,49 @@ function Login() {
 
   return (
     <>
-        <div>
-          {/* Title */}
-          <Header
-            title="Welcome back"
-            description="Sign in to your clinical workspace."
+      <div>
+        {/* Title */}
+        <Header
+          title="Welcome back"
+          description="Sign in to your clinical workspace."
+        />
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Email */}
+          <InputField
+            name="email"
+            label="EMAIL"
+            placeholder="email@example.com"
+            register={register}
+            errors={errors}
           />
 
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Email */}
-            <InputField
-              name="email"
-              label="EMAIL"
-              placeholder="email@example.com"
-              register={register}
-              errors={errors}
-            />
+          {/* Password */}
+          <InputField
+            name="password"
+            label="PASSWORD"
+            type="password"
+            placeholder="Enter your password"
+            register={register}
+            errors={errors}
+          >
+            <div className="text-right mt-2">
+              <span className="text-xs text-[var(--clay)] cursor-pointer hover:underline">
+                Forgot password?
+              </span>
+            </div>
+          </InputField>
 
-            {/* Password */}
-            <InputField
-              name="password"
-              label="PASSWORD"
-              type="password"
-              placeholder="Enter your password"
-              register={register}
-              errors={errors}
-            >
-              <div className="text-right mt-2">
-                <span className="text-xs text-[var(--clay)] cursor-pointer hover:underline">
-                  Forgot password?
-                </span>
-              </div>
-            </InputField>
-
-            {/* Submit */}
-            <Button
-              type="submit"
-              isValid={isValid}
-              label="Sign In"
-              isLoading={loginMutation.isPending}
-            />
-          </form>
-        </div>
+          {/* Submit */}
+          <Button
+            type="submit"
+            isValid={isValid}
+            label="Sign In"
+            isLoading={loginMutation.isPending}
+          />
+        </form>
+      </div>
     </>
   );
 }

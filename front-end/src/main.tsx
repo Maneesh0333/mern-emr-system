@@ -10,9 +10,7 @@ import ProtectedRoute from "./components/Shared/ProtectedRoute";
 import AdminOverview from "./components/Admin/AdminOverview";
 import Doctors from "./components/Admin/Doctors";
 import Receptionists from "./components/Admin/Receptionists";
-import AvailabilityCalendar from "./components/Admin/AvailabilityCalendar";
 import Schedule from "./components/Admin/Schedule";
-import RoleRedirect from "./components/Shared/RoleRedirect";
 import Doctor from "./pages/Doctor";
 import Receptionist from "./pages/Receptionist";
 import Scheduler from "./components/Shared/Scheduler";
@@ -21,6 +19,8 @@ import ReceptionistDashboard from "./components/ReceptionistDashboard";
 import Appointments from "./components/Admin/Appointments";
 import DoctorAppointments from "./components/Doctor/DoctorAppointments";
 import DoctorDashboard from "./components/Doctor/DoctorDashboard";
+import RoleRedirect from "./components/Shared/RoleRedirect";
+import { useAuthStore } from "./stores/authStore";
 
 const queryClient = new QueryClient();
 
@@ -105,11 +105,17 @@ const router = createBrowserRouter([
   },
 ]);
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster position="bottom-right" reverseOrder={false} />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+const init = async () => {
+  await useAuthStore.getState().initAuth();
+
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster position="bottom-right" reverseOrder={false} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+};
+
+init();

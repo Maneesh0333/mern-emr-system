@@ -1,19 +1,18 @@
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 
-
-interface ProtectedRouteProps {
+interface Props {
   children: React.ReactNode;
   requiredRole?: "SUPER_ADMIN" | "DOCTOR" | "RECEPTIONIST";
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
-  const user = useAuthStore((state) => state.user);
-  const accessToken = useAuthStore((state) => state.accessToken);
+const ProtectedRoute = ({ children, requiredRole }: Props) => {
+  const { accessToken, user, loading } = useAuthStore();
+
+  if (loading) return <div>Loading...</div>;
 
   if (!accessToken) return <Navigate to="/auth" replace />;
 
-  // check role
   if (requiredRole && user?.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }
