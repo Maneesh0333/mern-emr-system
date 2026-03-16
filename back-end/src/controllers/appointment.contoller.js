@@ -104,16 +104,28 @@ export const createAppointment = asyncHandler(async (req, res) => {
 
 export const getAppointments = asyncHandler(async (req, res) => {
   const { id, role } = req.user;
-  const { status = "All", search = "", date } = req.query;
+
+  const {
+    status = "All",
+    search = "",
+    date,
+    page = "1",
+    limit = "5",
+  } = req.query;
+
+  const pageNum = Math.max(parseInt(page, 10), 1);
+  const limitNum = Math.max(parseInt(limit, 10), 1);
+  const skip = (pageNum - 1) * limitNum;
 
   const match = {};
   const statsMatch = {};
 
-  if(role === "DOCTOR"){
+  if (role === "DOCTOR") {
     match.doctor = id;
+    statsMatch.doctor = id;
   }
 
-  // DATE FILTER (applies to both)
+  // DATE FILTER
   if (date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
@@ -130,20 +142,24 @@ export const getAppointments = asyncHandler(async (req, res) => {
   }
 
   if (search) {
+    const regex = new RegExp(search, "i");
+
     match.$or = [
-      { patientName: { $regex: search, $options: "i" } },
-      { phone: { $regex: search, $options: "i" } },
+      { patientName: regex },
+      { phone: regex },
     ];
   }
 
-  const [appointments, totalAppointments, scheduled, completed, cancelled] =
+  const [appointments, totalFiltered, scheduled, completed, cancelled] =
     await Promise.all([
       Appointment.find(match)
         .populate("doctor", "name department")
         .sort({ appointmentTime: -1 })
+        .skip(skip)
+        .limit(limitNum)
         .lean(),
 
-      Appointment.countDocuments({ ...statsMatch, status: "scheduled" }),
+      Appointment.countDocuments(match),
 
       Appointment.countDocuments({ ...statsMatch, status: "scheduled" }),
       Appointment.countDocuments({ ...statsMatch, status: "completed" }),
@@ -155,12 +171,18 @@ export const getAppointments = asyncHandler(async (req, res) => {
     message: "Appointments fetched.",
     data: {
       appointments,
-      totalAppointments,
+
       stats: {
         scheduled,
         completed,
         cancelled,
       },
+
+      page: pageNum,
+      limit: limitNum,
+      total: totalFiltered,
+      totalPages: Math.ceil(totalFiltered / limitNum),
+      results: appointments.length,
     },
   });
 });

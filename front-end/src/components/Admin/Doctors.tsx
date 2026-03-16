@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Shared/Header";
 import FilterChips from "../Shared/FilterChips";
 import SearchInput from "../Shared/SearchInput";
@@ -16,19 +16,19 @@ import {
 import DoctorsRow from "./DoctorsRow";
 import DoctorForm from "../forms/DoctorForm";
 import { getChips } from "../../utils/Filterschips";
+import Pagination from "../Shared/Pagination";
 
 export default function Doctors() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError } = useDoctors(activeFilter, search);
+  const { data, isLoading, isError } = useDoctors(activeFilter, search, page);
 
   const enableMutation = useEnableDoctor();
   const disableMutation = useDisableDoctor();
-
-  if (isError) return <p>Error loading doctors</p>;
 
   const doctors = data?.doctors ?? [];
 
@@ -40,6 +40,11 @@ export default function Doctors() {
     data?.totalDoctors ?? 0,
   );
 
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilter, search]);
+
+  if (isError) return <p>Error loading doctors</p>;
   return (
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
@@ -75,6 +80,7 @@ export default function Doctors() {
         headers={[
           "Name",
           "Email",
+          "Phone",
           "Department",
           "Specialty",
           "Status",
@@ -97,6 +103,12 @@ export default function Doctors() {
             }}
           />
         )}
+      />
+
+      <Pagination
+        page={data?.page ?? 1}
+        totalPages={data?.totalPages ?? 1}
+        onPageChange={setPage}
       />
 
       <SideSheet

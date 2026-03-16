@@ -15,18 +15,26 @@ export type Appointment = {
   };
 };
 
+type AppointmentStats = {
+  scheduled: number;
+  completed: number;
+  cancelled: number;
+};
+
 type AppointmentsResponse = {
   appointments: Appointment[];
-  totalAppointments: number;
-  stats: {
-    scheduled: number;
-    completed: number;
-    cancelled: number;
-  };
+  stats: AppointmentStats;
+
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  results: number;
 };
 
 type ApiResponse = {
   success: boolean;
+  message: string;
   data: AppointmentsResponse;
 };
 
@@ -34,17 +42,26 @@ export const useAppointments = (
   status: string,
   search: string,
   date: string,
+  page: number,
+  limit = 5,
 ) => {
   return useQuery({
-    queryKey: ["appointments", status, search, date],
+    queryKey: ["appointments", status, search, date, page],
 
     queryFn: async () => {
       const { data } = await axiosApi.get<ApiResponse>("/appointments", {
-        params: { status, search, date },
+        params: {
+          status,
+          search,
+          date,
+          page,
+          limit,
+        },
       });
 
       return data.data;
     },
+
     placeholderData: (prev) => prev,
   });
 };

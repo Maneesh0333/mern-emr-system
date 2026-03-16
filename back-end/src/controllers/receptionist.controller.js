@@ -5,12 +5,7 @@ import bcrypt from "bcryptjs";
 import Appointment from "../models/appointment.model.js";
 
 export const createReceptionist = asyncHandler(async (req, res) => {
-  const { name, email, password, department = "" } = req.body;
-
-  if (!name || !email || !password) {
-    res.status(400);
-    throw new AppError("Name, Email and Password are required");
-  }
+  const { name, email, phone, password, department } = req.body;
 
   const existingReceptionist = await User.findOne({ email });
 
@@ -23,6 +18,7 @@ export const createReceptionist = asyncHandler(async (req, res) => {
   await User.create({
     name,
     email,
+    phone,
     password: hashedPassword,
     department,
     role: "RECEPTIONIST",
@@ -56,6 +52,7 @@ export const getReceptionists = asyncHandler(async (req, res) => {
       { name: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
       { department: { $regex: search, $options: "i" } },
+      { specialty: { $regex: search, $options: "i" } },
     ];
   }
 
@@ -72,16 +69,15 @@ export const getReceptionists = asyncHandler(async (req, res) => {
               name: 1,
               email: 1,
               department: 1,
+              specialty: 1,
               status: 1,
+              phone: 1,
               createdAt: 1,
             },
           },
         ],
 
-        totalFiltered: [
-          { $match: filteredMatch },
-          { $count: "count" },
-        ],
+        totalFiltered: [{ $match: filteredMatch }, { $count: "count" }],
 
         stats: [
           { $match: baseMatch }, // only role filter
@@ -93,10 +89,7 @@ export const getReceptionists = asyncHandler(async (req, res) => {
           },
         ],
 
-        totalReceptionists: [
-          { $match: baseMatch },
-          { $count: "count" },
-        ],
+        totalReceptionists: [{ $match: baseMatch }, { $count: "count" }],
       },
     },
   ]);
@@ -166,28 +159,32 @@ export const disableReceptionist = asyncHandler(async (req, res) => {
 });
 
 export const updateReceptionist = asyncHandler(async (req, res) => {
-  const { name, department = "", status = "Active" } = req.body;
+  const allowedFields = ["name", "email", "department", "phone"];
 
-  if (!name) {
-    res.status(400);
-    throw new Error("Receptionist name is required");
+  if (!Object.keys(req.body).length) {
+    throw new AppError("No field is provided for update", 400);
   }
 
-  const receptionist = await User.findById(req.params.id);
+  const updateData = Object.fromEntries(
+    Object.entries(req.body).filter(([key]) => allowedFields.includes(key)),
+  );
+
+  if (!Object.keys(updateData).length) {
+    throw new AppError("No valid fields provided for update", 400);
+  }
+
+  const receptionist = await User.findByIdAndUpdate(req.params.id, updateData, {
+    runValidators: true,
+    new: true,
+  });
 
   if (!receptionist) {
     throw new AppError("Receptionist not found", 404);
   }
 
-  receptionist.name = name;
-  receptionist.department = department;
-  receptionist.status = status;
-
-  await receptionist.save();
-
   res.status(200).json({
     success: true,
-    message: "Receptionist Updated successfully",
+    message: "Receptionist updated successfully",
   });
 });
 

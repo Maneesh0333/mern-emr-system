@@ -5,32 +5,79 @@ import InputField from "../Shared/InputField";
 import Button from "../Shared/Button";
 import { useEffect } from "react";
 import {
-  useCreateDoctor,
-  useUpdateDoctor,
-  type Doctor,
-} from "../../hooks/Admin/useDoctors";
-import {
   useCreateReceptionist,
   useUpdateReceptionist,
   type Receptionist,
 } from "../../hooks/Admin/useReceptionists";
 
+// --------------------------- Yup Schemas ---------------------------
 const createReceptionistSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email required"),
+  name: yup
+    .string()
+    .trim()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name can be 50 characters max"),
+
+  email: yup
+    .string()
+    .trim()
+    .required("Email is required")
+    .email("Invalid email format")
+    .min(5, "Email must be at least 5 characters")
+    .max(50, "Email can be 50 characters max"),
+
   password: yup
     .string()
-    .min(6, "Minimum 6 characters")
-    .required("Password is required"),
-  department: yup.string().required("Department required"),
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password can be 100 characters max"),
+
+  department: yup
+    .string()
+    .trim()
+    .required("Department is required")
+    .min(2, "Department must be at least 2 characters")
+    .max(50, "Department can be 50 characters max"),
+
+  phone: yup
+    .string()
+    .trim()
+    .required("Phone number is required")
+    .matches(/^[0-9]{10,15}$/, "Phone number must be 10–15 digits"),
 });
 
 const updateReceptionistSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email required"),
-  department: yup.string().required("Department required"),
+  name: yup
+    .string()
+    .trim()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name can be 50 characters max"),
+
+  email: yup
+    .string()
+    .trim()
+    .required("Email is required")
+    .email("Invalid email format")
+    .min(5, "Email must be at least 5 characters")
+    .max(50, "Email can be 50 characters max"),
+
+  department: yup
+    .string()
+    .trim()
+    .required("Department is required")
+    .min(2, "Department must be at least 2 characters")
+    .max(50, "Department can be 50 characters max"),
+
+  phone: yup
+    .string()
+    .trim()
+    .required("Phone number is required")
+    .matches(/^[0-9]{10,15}$/, "Phone number must be 10–15 digits"),
 });
 
+// --------------------------- Types ---------------------------
 export type CreateReceptionistForm = yup.InferType<
   typeof createReceptionistSchema
 >;
@@ -45,6 +92,7 @@ type Props = {
   closeSheet: () => void;
 };
 
+// --------------------------- Component ---------------------------
 export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
   const createMutation = useCreateReceptionist();
   const updateMutation = useUpdateReceptionist();
@@ -53,7 +101,7 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
     handleSubmit,
     register,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty, dirtyFields },
   } = useForm<FormData>({
     resolver: yupResolver(
       receptionist ? updateReceptionistSchema : createReceptionistSchema,
@@ -67,6 +115,7 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
         name: receptionist.name,
         email: receptionist.email,
         department: receptionist.department,
+        phone: receptionist.phone || "",
       });
     } else {
       reset({
@@ -74,14 +123,21 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
         email: "",
         password: "",
         department: "",
+        phone: "",
       });
     }
   }, [receptionist, reset]);
 
   const onSubmit = (data: FormData) => {
     if (receptionist) {
+      const dataMod = Object.fromEntries(
+        Object.entries(data).filter(([key]) =>
+          Object.keys(dirtyFields).includes(key),
+        ),
+      );
+
       updateMutation.mutate(
-        { id: receptionist._id, data },
+        { id: receptionist._id, dataMod },
         {
           onSuccess: () => {
             reset();
@@ -110,7 +166,7 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
           name="name"
           register={register}
           errors={errors}
-          placeholder="Dr John"
+          placeholder="Jane Doe"
           inputClassName="!px-3 !py-2 text-sm"
         />
 
@@ -119,7 +175,7 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
           name="email"
           register={register}
           errors={errors}
-          placeholder="doctor@hospital.com"
+          placeholder="receptionist@hospital.com"
           inputClassName="!px-3 !py-2 text-sm"
         />
 
@@ -128,6 +184,7 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
             label="Password"
             name="password"
             type="password"
+            placeholder="Enter a secure password"
             register={register}
             errors={errors}
             inputClassName="!px-3 !py-2 text-sm"
@@ -137,16 +194,26 @@ export default function ReceptionistForm({ receptionist, closeSheet }: Props) {
         <InputField
           label="Department"
           name="department"
+          placeholder="Front Desk / Admissions"
           register={register}
           errors={errors}
+          inputClassName="!px-3 !py-2 text-sm"
+        />
+
+        <InputField
+          label="Phone Number"
+          name="phone"
+          register={register}
+          errors={errors}
+          placeholder="0123456789"
           inputClassName="!px-3 !py-2 text-sm"
         />
       </div>
 
       <Button
         type="submit"
-        label={receptionist ? "Update Doctor" : "Create Doctor"}
-        disabled={!isValid}
+        label={receptionist ? "Update Receptionist" : "Create Receptionist"}
+        disabled={!isValid || !isDirty}
         isLoading={
           receptionist ? updateMutation.isPending : createMutation.isPending
         }

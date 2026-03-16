@@ -2,13 +2,14 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore, type User } from "../../stores/authStore";
 import { useMutation } from "@tanstack/react-query";
 import axiosApi from "../../lib/axios";
 import toast from "react-hot-toast";
 import Header from "./Header";
 import InputField from "../Shared/InputField";
 import Button from "./Button";
+import type { AxiosError } from "axios";
 
 const loginSchema = yup.object({
   email: yup
@@ -27,41 +28,15 @@ const loginSchema = yup.object({
 });
 
 type LoginFormType = yup.InferType<typeof loginSchema>;
-// ---------------------
-// Backend response types
-// ---------------------
-interface LoginSuccessResponse {
-  success: true;
+
+type LoginResponse = {
+  success: boolean;
   message: string;
   data: {
     accessToken: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      phone: string;
-      role: string;
-    };
+    user: User
   };
-}
-
-interface LoginRequiresVerification {
-  success: false;
-  message: string;
-  requiresVerification: true;
-  email: string;
-}
-
-interface LoginEntrepreneurPending {
-  success: false;
-  message: string;
-  entrepreneurStatus: "PENDING" | "REJECTED";
-}
-
-type LoginResponse =
-  | LoginSuccessResponse
-  | LoginRequiresVerification
-  | LoginEntrepreneurPending;
+};
 
 function Login() {
   const navigate = useNavigate();
@@ -76,54 +51,29 @@ function Login() {
     mode: "onChange",
   });
 
-  // ---------------------
-  // Login mutation
-  // ---------------------
-  const loginMutation = useMutation<LoginResponse, any, LoginFormType>({
+  const loginMutation = useMutation<LoginResponse, AxiosError<LoginResponse>, LoginFormType>({
     mutationFn: async (formData) => {
-      const res = await axiosApi.post("/auth/login", formData);
+      const res = await axiosApi.post<LoginResponse>("/auth/login", formData);
       return res.data;
     },
+
     onSuccess: (data) => {
-      // 2xx success response
-      if (!data.success) {
-        toast.error(data.message);
+      if(!data.success){
+        toast.error(data.message || "Login failed");
         return;
       }
-      login(data.data);
-      toast.success(data.message);
+      login(data.data); 
+      toast.success(data.message || "Login success");
       navigate("/");
     },
+
     onError: (error) => {
-      // Network error
       if (!error.response) {
-        toast.error("Network error, please try again later.");
+        toast.error("Network error");
         return;
       }
 
-      const { status, data } = error.response as {
-        status: number;
-        data: LoginResponse;
-      };
-
-      // Handle backend errors
-      switch (status) {
-        case 401:
-          toast.error(data.message || "Invalid credentials");
-          break;
-        case 403:
-          if ("requiresVerification" in data && data.requiresVerification) {
-            toast.error(data.message);
-          } else if ("entrepreneurStatus" in data) {
-            toast.error(data.message);
-          }
-          break;
-        case 500:
-          toast.error(data.message || "Server error, please try again later");
-          break;
-        default:
-          toast.error(data.message || "Login failed");
-      }
+      toast.error(error.response.data.message || "Login failed");
     },
   });
 

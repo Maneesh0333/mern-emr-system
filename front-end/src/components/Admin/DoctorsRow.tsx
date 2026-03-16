@@ -25,6 +25,7 @@ export default function DoctorsRow({
     <tr className="border-t border-[var(--border-1)]">
       <td className="px-4 py-4">{item.name}</td>
       <td className="px-4 py-4">{item.email}</td>
+      <td className="px-4 py-4">{item.phone}</td>
       <td className="px-4 py-4">{item.department}</td>
       <td className="px-4 py-4">{item.specialty}</td>
 

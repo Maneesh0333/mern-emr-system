@@ -18,6 +18,7 @@ export type Doctor = {
   _id: string;
   name: string;
   email: string;
+  phone: string;
   department: string;
   specialty: string;
   status: "Active" | "Inactive";
@@ -41,18 +42,19 @@ type ApiResponse = {
   data: DoctorsResponse;
 };
 
-export const useDoctors = (status: string, search: string) => {
+export const useDoctors = (status: string, search: string, page: number) => {
   return useQuery({
-    queryKey: ["doctors", status, search],
+    queryKey: ["doctors", status, search, page],
 
     queryFn: async () => {
       const { data } = await axiosApi.get<ApiResponse>("/doctors", {
-        params: { status, search },
+        params: { status, search, page, limit: 5 },
       });
 
       return data.data;
     },
-    placeholderData: (prev)=> prev
+
+    placeholderData: (prev) => prev,
   });
 };
 
@@ -161,10 +163,10 @@ export const useUpdateDoctor = () => {
   return useMutation<
     ResponseType,
     AxiosError<ResponseType>,
-    { id: string; data: UpdateDoctorForm }
+    { id: string; dataMod: Partial<UpdateDoctorForm> }
   >({
-    mutationFn: async ({ id, data }) => {
-      const res = await axiosApi.patch<ResponseType>(`/doctors/${id}`, data);
+    mutationFn: async ({ id, dataMod }) => {
+      const res = await axiosApi.patch<ResponseType>(`/doctors/${id}`, dataMod);
       return res.data;
     },
 

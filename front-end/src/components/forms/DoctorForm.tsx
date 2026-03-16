@@ -10,24 +10,88 @@ import {
   type Doctor,
 } from "../../hooks/Admin/useDoctors";
 
+// --------------------------- Yup Schemas ---------------------------
 const createDoctorSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email required"),
+  name: yup
+    .string()
+    .trim()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name can be 50 characters max"),
+
+  email: yup
+    .string()
+    .trim()
+    .required("Email is required")
+    .email("Invalid email format")
+    .min(5, "Email must be at least 5 characters")
+    .max(50, "Email can be 50 characters max"),
+
   password: yup
     .string()
-    .min(6, "Minimum 6 characters")
-    .required("Password is required"),
-  department: yup.string().required("Department required"),
-  specialty: yup.string().required("Specialty required"),
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password can be 100 characters max"),
+
+  specialty: yup
+    .string()
+    .trim()
+    .required("Specialty is required")
+    .min(2, "Specialty must be at least 2 characters")
+    .max(50, "Specialty can be 50 characters max"),
+
+  department: yup
+    .string()
+    .trim()
+    .required("Department is required")
+    .min(2, "Department must be at least 2 characters")
+    .max(50, "Department can be 50 characters max"),
+
+  phone: yup
+    .string()
+    .trim()
+    .required("Phone number is required")
+    .matches(/^[0-9]{10,15}$/, "Phone number must be 10–15 digits"),
 });
 
 const updateDoctorSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email required"),
-  department: yup.string().required("Department required"),
-  specialty: yup.string().required("Specialty required"),
+  name: yup
+    .string()
+    .trim()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name can be 50 characters max"),
+
+  email: yup
+    .string()
+    .trim()
+    .required("Email is required")
+    .email("Invalid email format")
+    .min(5, "Email must be at least 5 characters")
+    .max(50, "Email can be 50 characters max"),
+
+  specialty: yup
+    .string()
+    .trim()
+    .required("Specialty is required")
+    .min(2, "Specialty must be at least 2 characters")
+    .max(50, "Specialty can be 50 characters max"),
+
+  department: yup
+    .string()
+    .trim()
+    .required("Department is required")
+    .min(2, "Department must be at least 2 characters")
+    .max(50, "Department can be 50 characters max"),
+
+  phone: yup
+    .string()
+    .trim()
+    .required("Phone number is required")
+    .matches(/^[0-9]{10,15}$/, "Phone number must be 10–15 digits"),
 });
 
+// --------------------------- Types ---------------------------
 export type CreateDoctorForm = yup.InferType<typeof createDoctorSchema>;
 export type UpdateDoctorForm = yup.InferType<typeof updateDoctorSchema>;
 
@@ -38,6 +102,7 @@ type Props = {
   closeSheet: () => void;
 };
 
+// --------------------------- DoctorForm Component ---------------------------
 export default function DoctorForm({ doctor, closeSheet }: Props) {
   const createMutation = useCreateDoctor();
   const updateMutation = useUpdateDoctor();
@@ -46,7 +111,7 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
     handleSubmit,
     register,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty, dirtyFields },
   } = useForm<FormData>({
     resolver: yupResolver(doctor ? updateDoctorSchema : createDoctorSchema),
     mode: "onChange",
@@ -59,6 +124,7 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
         email: doctor.email,
         department: doctor.department,
         specialty: doctor.specialty,
+        phone: doctor.phone,
       });
     } else {
       reset({
@@ -67,14 +133,21 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
         password: "",
         department: "",
         specialty: "",
+        phone: "",
       });
     }
   }, [doctor, reset]);
 
   const onSubmit = (data: FormData) => {
     if (doctor) {
+      const dataMod = Object.fromEntries(
+        Object.entries(data).filter(([key]) =>
+          Object.keys(dirtyFields).includes(key),
+        ),
+      );
+
       updateMutation.mutate(
-        { id: doctor._id, data },
+        { id: doctor._id, dataMod },
         {
           onSuccess: () => {
             reset();
@@ -121,6 +194,7 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
             label="Password"
             name="password"
             type="password"
+            placeholder="Enter a secure password"
             register={register}
             errors={errors}
             inputClassName="!px-3 !py-2 text-sm"
@@ -130,6 +204,7 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
         <InputField
           label="Department"
           name="department"
+          placeholder="Cardiology / Pediatrics"
           register={register}
           errors={errors}
           inputClassName="!px-3 !py-2 text-sm"
@@ -138,8 +213,18 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
         <InputField
           label="Specialty"
           name="specialty"
+          placeholder="Heart Failure / Neonatology"
           register={register}
           errors={errors}
+          inputClassName="!px-3 !py-2 text-sm"
+        />
+
+        <InputField
+          label="Phone Number"
+          name="phone"
+          register={register}
+          errors={errors}
+          placeholder="0123456789"
           inputClassName="!px-3 !py-2 text-sm"
         />
       </div>
@@ -147,7 +232,7 @@ export default function DoctorForm({ doctor, closeSheet }: Props) {
       <Button
         type="submit"
         label={doctor ? "Update Doctor" : "Create Doctor"}
-        disabled={!isValid}
+        disabled={!isValid || !isDirty}
         isLoading={doctor ? updateMutation.isPending : createMutation.isPending}
       />
     </form>

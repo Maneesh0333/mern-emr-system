@@ -1,6 +1,5 @@
 import { asyncHandler } from "../middleware/async.middleware.js";
 import Appointment from "../models/appointment.model.js";
-import DoctorAvailability from "../models/DoctorAvailability.model.js";
 import DoctorSchedule from "../models/DoctorSchedule.model.js";
 import User from "../models/User.model.js";
 import { minutesToTime } from "../utils/MinutesToTime.js";
@@ -134,12 +133,14 @@ export const getDoctorDashboard = async (req, res) => {
 };
 
 export const createDoctor = asyncHandler(async (req, res) => {
-  const { name, email, password, department = "", specialty = "" } = req.body;
-
-  if (!name || !email || !password) {
-    res.status(400);
-    throw new AppError("Name, Email and Password are required");
-  }
+  const {
+    name,
+    email,
+    phone,
+    password,
+    department = "",
+    specialty = "",
+  } = req.body;
 
   const existingDoctor = await User.findOne({ email });
 
@@ -152,6 +153,7 @@ export const createDoctor = asyncHandler(async (req, res) => {
   await User.create({
     name,
     email,
+    phone,
     password: hashedPassword,
     department,
     specialty,
@@ -165,16 +167,13 @@ export const createDoctor = asyncHandler(async (req, res) => {
 });
 
 export const getAdminDoctors = asyncHandler(async (req, res) => {
-  const { status = "All", page = 1, limit = 5, search = "" } = req.query;
+  const { status = "All", page = "1", limit = "5", search = "" } = req.query;
 
-  const pageNum = Math.max(parseInt(page), 1);
-  const limitNum = Math.max(parseInt(limit), 1);
+  const pageNum = Math.max(parseInt(page, 10), 1);
+  const limitNum = Math.max(parseInt(limit, 10), 1);
   const skip = (pageNum - 1) * limitNum;
 
-  const baseMatch = {
-    role: "DOCTOR",
-  };
-
+  const baseMatch = { role: "DOCTOR" };
   const filteredMatch = { ...baseMatch };
 
   if (status !== "All") {
@@ -182,11 +181,13 @@ export const getAdminDoctors = asyncHandler(async (req, res) => {
   }
 
   if (search) {
+    const regex = new RegExp(search, "i");
+
     filteredMatch.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
-      { department: { $regex: search, $options: "i" } },
-      { specialty: { $regex: search, $options: "i" } },
+      { name: regex },
+      { email: regex },
+      { department: regex },
+      { specialty: regex },
     ];
   }
 
@@ -205,15 +206,13 @@ export const getAdminDoctors = asyncHandler(async (req, res) => {
               department: 1,
               specialty: 1,
               status: 1,
+              phone: 1,
               createdAt: 1,
             },
           },
         ],
 
-        totalFiltered: [
-          { $match: filteredMatch },
-          { $count: "count" },
-        ],
+        totalFiltered: [{ $match: filteredMatch }, { $count: "count" }],
 
         stats: [
           { $match: baseMatch },
@@ -225,25 +224,18 @@ export const getAdminDoctors = asyncHandler(async (req, res) => {
           },
         ],
 
-        totalDoctors: [
-          { $match: baseMatch },
-          { $count: "count" },
-        ],
+        totalDoctors: [{ $match: baseMatch }, { $count: "count" }],
       },
     },
   ]);
 
   const doctors = result[0].doctors;
-
   const totalFiltered = result[0].totalFiltered[0]?.count || 0;
   const totalDoctors = result[0].totalDoctors[0]?.count || 0;
 
   const statsArray = result[0].stats;
 
-  const stats = {
-    Active: 0,
-    Inactive: 0,
-  };
+  const stats = { Active: 0, Inactive: 0 };
 
   statsArray.forEach((s) => {
     stats[s._id] = s.count;
@@ -298,25 +290,28 @@ export const disableDoctor = asyncHandler(async (req, res) => {
 });
 
 export const updateDoctor = asyncHandler(async (req, res) => {
-  const { name, department = "", specialty = "", status = "Active" } = req.body;
+  const allowedFields = ["name", "email", "department", "phone", "specialty"];
 
-  if (!name) {
-    res.status(400);
-    throw new Error("Doctor name is required");
+  if (!Object.keys(req.body).length) {
+    throw new AppError("No field is Provided for update", 400);
   }
 
-  const doctor = await User.findById(req.params.id);
+  const updateData = Object.fromEntries(
+    Object.entries(req.body).filter(([key]) => allowedFields.includes(key)),
+  );
+
+  if (!Object.keys(updateData).length) {
+    throw new AppError("No valid fields provided for update", 400);
+  }
+
+  const doctor = await User.findByIdAndUpdate(req.params.id, updateData, {
+    runValidators: true,
+    new: true,
+  });
 
   if (!doctor) {
     throw new AppError("Doctor not found", 404);
   }
-
-  doctor.name = name;
-  doctor.department = department;
-  doctor.specialty = specialty;
-  doctor.status = status;
-
-  await doctor.save();
 
   res.status(200).json({
     success: true,

@@ -13,7 +13,7 @@ import {
 } from "../controllers/doctor.controller.js";
 
 import { isAuthenticated, restrictTo } from "../middleware/auth.middleware.js";
-import { createDoctorSchema } from "../validations/docter.validation.js";
+import { createDoctorSchema, updateDoctorSchema } from "../validations/docter.validation.js";
 import { validate } from "../middleware/validate.middleware.js";
 
 const router = express.Router();
@@ -31,7 +31,7 @@ router.post(
   createDoctor
 );
 
-router.patch("/:id", restrictTo("SUPER_ADMIN"), updateDoctor);
+router.patch("/:id", restrictTo("SUPER_ADMIN"), validate(updateDoctorSchema), updateDoctor);
 
 router.patch("/:id/enable", restrictTo("SUPER_ADMIN"), enableDoctor);
 

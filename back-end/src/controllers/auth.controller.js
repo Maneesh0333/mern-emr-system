@@ -9,8 +9,9 @@ import Session from "../models/Session.model.js";
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if user exists
+  // Check user
   const user = await User.findOne({ email }).select("+password");
+
   if (!user) {
     throw new AppError("Invalid email or password", 401);
   }
@@ -22,52 +23,54 @@ export const login = asyncHandler(async (req, res) => {
     throw new AppError("Invalid email or password", 401);
   }
 
-  // Create tokens
+  // Create access token
   const accessToken = jwt.sign(
     { id: user._id, role: user.role },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" },
+    { expiresIn: "15m" }
   );
 
+  // Create refresh token
   const refreshToken = jwt.sign(
     { id: user._id, role: user.role },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: "7d" },
+    { expiresIn: "7d" }
   );
 
+  // Hash refresh token
   const hashedRefreshToken = crypto
     .createHash("sha256")
     .update(refreshToken)
     .digest("hex");
 
-  // Store refresh token in DB (one session per login)
+  // Store session
   await Session.create({
     userId: user._id,
     refreshToken: hashedRefreshToken,
   });
 
-  // Send refresh token as HTTP-only cookie
+  // Send refresh token cookie
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  // Fillter User
-  const fillteredUser = {}
-  fillteredUser.name = user.name;
-  fillteredUser.email = user.email
-  fillteredUser.role = user.role
+  // Filter user
+  const filteredUser = {
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 
-  // Send access token in response body
   res.status(200).json({
     success: true,
     message: `Welcome back ${user.name}`,
     data: {
       accessToken,
-      user: fillteredUser
-    }
+      user: filteredUser,
+    },
   });
 });
 

@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-export const createDoctorSchema = yup
+export const createReceptionistSchema = yup
   .object({
     name: yup
       .string()
@@ -23,13 +23,6 @@ export const createDoctorSchema = yup
       .min(6, "Password must be at least 6 characters")
       .max(100, "Password can be 100 characters max"),
 
-    specialty: yup
-      .string()
-      .trim()
-      .required("Specialty is required")
-      .min(2, "Specialty must be at least 2 characters")
-      .max(50, "Specialty can be 50 characters max"),
-
     department: yup
       .string()
       .trim()
@@ -45,8 +38,7 @@ export const createDoctorSchema = yup
   })
   .noUnknown(true, "Unknown fields are not allowed");
 
-
-  export const updateDoctorSchema = yup
+export const updateReceptionistSchema = yup
   .object({
     name: yup
       .string()
@@ -60,12 +52,6 @@ export const createDoctorSchema = yup
       .email("Invalid email format")
       .min(5, "Email must be at least 5 characters")
       .max(50, "Email can be 50 characters max"),
-
-    specialty: yup
-      .string()
-      .trim()
-      .min(2, "Specialty must be at least 2 characters")
-      .max(50, "Specialty can be 50 characters max"),
 
     department: yup
       .string()

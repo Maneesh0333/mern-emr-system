@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Shared/Header";
 import FilterChips from "../Shared/FilterChips";
 import SearchInput from "../Shared/SearchInput";
@@ -7,6 +7,7 @@ import { getChips } from "../../utils/Filterschips";
 import AppointmentsRow from "./AppointmentsRow";
 import { useAppointments } from "../../hooks/Admin/useAppointments";
 import { useAuthStore } from "../../stores/authStore";
+import Pagination from "../Shared/Pagination";
 
 export default function Appointments() {
   const user = useAuthStore((state) => state.user);
@@ -14,11 +15,13 @@ export default function Appointments() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useAppointments(
     activeFilter,
     search,
     date,
+    page,
   );
 
   const appointments = data?.appointments ?? [];
@@ -29,8 +32,12 @@ export default function Appointments() {
       completed: 0,
       cancelled: 0,
     },
-    data?.totalAppointments ?? 0,
+    data?.total ?? 0,
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilter, search]);
 
   if (isError) return <p>Error loading appointments</p>;
 
@@ -38,7 +45,7 @@ export default function Appointments() {
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
         title="Appointments"
-        description={`${data?.totalAppointments ?? 0} total appointments`}
+        description={`${data?.total ?? 0} total appointments`}
         children={
           <input
             type="date"
@@ -88,6 +95,12 @@ export default function Appointments() {
         emptyMessage="No Appointments "
         colSpan={8}
         renderRow={(item) => <AppointmentsRow key={item._id} item={item} />}
+      />
+
+      <Pagination
+        page={data?.page ?? 1}
+        totalPages={data?.totalPages ?? 1}
+        onPageChange={setPage}
       />
     </div>
   );

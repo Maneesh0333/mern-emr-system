@@ -12,6 +12,7 @@ export type Receptionist = {
   _id: string;
   name: string;
   email: string;
+  phone: string;
   department: string;
   status: "Active" | "Inactive";
   createdAt: string;
@@ -44,13 +45,13 @@ type ResponseType = {
   message: string;
 };
 
-export const useReceptionists = (status: string, search: string) => {
+export const useReceptionists = (status: string, search: string, page: number) => {
   return useQuery({
-    queryKey: ["receptionists", status, search],
+    queryKey: ["receptionists", status, search, page],
 
     queryFn: async () => {
       const { data } = await axiosApi.get<ApiResponse>("/receptionists", {
-        params: { status, search },
+        params: { status, search, page, limit:5 },
       });
 
       return data.data;
@@ -169,12 +170,12 @@ export const useUpdateReceptionist = () => {
   return useMutation<
     ResponseType,
     AxiosError<ResponseType>,
-    { id: string; data: UpdateReceptionistForm }
+    { id: string; dataMod: Partial<UpdateReceptionistForm> }
   >({
-    mutationFn: async ({ id, data }) => {
+    mutationFn: async ({ id, dataMod }) => {
       const res = await axiosApi.patch<ResponseType>(
         `/receptionists/${id}`,
-        data,
+        dataMod,
       );
       return res.data;
     },

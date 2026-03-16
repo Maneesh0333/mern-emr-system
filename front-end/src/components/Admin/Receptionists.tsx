@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Shared/Header";
 import FilterChips from "../Shared/FilterChips";
 import SearchInput from "../Shared/SearchInput";
@@ -14,6 +14,7 @@ import {
   type Receptionist,
 } from "../../hooks/Admin/useReceptionists";
 import ReceptionistForm from "../forms/ReceptionistForm";
+import Pagination from "../Shared/Pagination";
 
 export default function Receptionists() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -22,8 +23,9 @@ export default function Receptionists() {
   const [selectedDoctor, setSelectedDoctor] = useState<Receptionist | null>(
     null,
   );
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError } = useReceptionists(activeFilter, search);
+  const { data, isLoading, isError } = useReceptionists(activeFilter, search, page);
 
   const enableMutation = useEnableReceptionist();
   const disableMutation = useDisableReceptionist();
@@ -31,9 +33,13 @@ export default function Receptionists() {
   const doctors = data?.receptionists ?? [];
 
   const chips = getChips(
-    data?.stats ?? { Active: 0, InActive: 0 },
+    data?.stats ?? { Active: 0, Inactive: 0 },
     data?.totalReceptionists ?? 0,
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilter, search]);
 
   if (isError) return <p>Error loading doctors</p>;
   return (
@@ -71,6 +77,7 @@ export default function Receptionists() {
         headers={[
           "Name",
           "Email",
+          "Phone",
           "Department",
           "Status",
           "Created",
@@ -92,6 +99,12 @@ export default function Receptionists() {
             }}
           />
         )}
+      />
+
+      <Pagination
+        page={data?.page ?? 1}
+        totalPages={data?.totalPages ?? 1}
+        onPageChange={setPage}
       />
 
       <SideSheet
