@@ -1,38 +1,40 @@
 import StatsGrid from "../Shared/StatsGrid";
 import QuickActions from "../Shared/QuickActions";
 import { useDoctorDashboard } from "../../hooks/Doctor/useDashboard";
+import Spinner from "../Shared/Spinner";
 
 export default function DoctorDashboard() {
   const { data, isLoading } = useDoctorDashboard();
 
-  if (isLoading) return <p>Loading dashboard...</p>;
-
+  if (isLoading) {
+    return <Spinner />
+  }
   const stats = [
     {
       icon: "📅",
       label: "Today's Appointments",
-      value: data?.total || 0,
+      value: data?.total ?? 0,
       change: "Patients booked today",
       sub: "Check schedule",
     },
     {
       icon: "⏳",
       label: "Scheduled",
-      value: data?.scheduled || "0",
+      value: data?.scheduled ?? 0,
       change: "Waiting patients",
       sub: "Upcoming consultations",
     },
     {
       icon: "✅",
       label: "Completed",
-      value: data?.completed || "0",
+      value: data?.completed ?? 0,
       change: "Consultations done",
       sub: "Finished today",
     },
     {
       icon: "❌",
       label: "Cancelled",
-      value: data?.cancelled || "0",
+      value: data?.cancelled ?? 0,
       change: "Missed appointments",
       sub: "Today cancellations",
     },

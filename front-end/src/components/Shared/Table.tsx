@@ -1,4 +1,5 @@
 import React from "react";
+import Spinner from "./Spinner";
 
 type TableProps<T extends { _id: string }> = {
   headers: string[];
@@ -6,6 +7,7 @@ type TableProps<T extends { _id: string }> = {
   colSpan: number;
   emptyMessage?: string;
   renderRow: (item: T) => React.ReactNode;
+  isLoading?: boolean;
 };
 
 export default function Table<T extends { _id: string }>({
@@ -14,6 +16,7 @@ export default function Table<T extends { _id: string }>({
   colSpan,
   emptyMessage = "No data found",
   renderRow,
+  isLoading,
 }: TableProps<T>) {
   return (
     <div className="bg-white rounded-xl border border-[var(--border-1)] overflow-x-auto">
@@ -29,7 +32,13 @@ export default function Table<T extends { _id: string }>({
         </thead>
 
         <tbody>
-          {data.length === 0 ? (
+          {isLoading ? (
+            <tr>
+              <td colSpan={colSpan} className="py-6">
+                <Spinner className="h-5! w-5! border-2!" />
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
             <tr>
               <td colSpan={colSpan} className="text-center py-6 text-gray-500">
                 {emptyMessage}

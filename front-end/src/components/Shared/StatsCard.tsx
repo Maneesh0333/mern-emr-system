@@ -1,4 +1,5 @@
-import type { statsDataType } from "./StatsGrid";
+import type { StatCard } from "./StatsGrid";
+
 
 export default function StatsCard({
   icon,
@@ -6,7 +7,7 @@ export default function StatsCard({
   value,
   change,
   sub,
-}: statsDataType) {
+}: StatCard) {
   return (
     <div className="p-4 rounded-xl bg-white border border-[rgba(196,99,42,0.12)]">
       <div className="text-xl">{icon}</div>

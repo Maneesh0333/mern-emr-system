@@ -30,15 +30,17 @@ export default function Receptionists() {
 
   const doctors = data?.receptionists ?? [];
 
-  const chips = getChips(data?.stats, data?.totalReceptionists);
+  const chips = getChips(
+    data?.stats ?? { Active: 0, InActive: 0 },
+    data?.totalReceptionists ?? 0,
+  );
 
-  if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading doctors</p>;
   return (
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
         title="Receptionists"
-        description={`${data?.totalReceptionists} registered Receptionists`}
+        description={`${data?.totalReceptionists ?? 0} registered Receptionists`}
         children={
           <Button
             label="+ Add Receptionists"
@@ -75,6 +77,8 @@ export default function Receptionists() {
           "Actions",
         ]}
         data={doctors}
+        emptyMessage="No Receptionists"
+        isLoading={isLoading}
         colSpan={7}
         renderRow={(item) => (
           <ReceptionistsRow

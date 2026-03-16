@@ -1,12 +1,25 @@
 import express from "express";
-import { createReceptionist, disableReceptionist, enableReceptionist, getReceptionists, updateReceptionist } from "../controllers/receptionistController.js";
+import {
+  createReceptionist,
+  disableReceptionist,
+  enableReceptionist,
+  getReceptionistDashboard,
+  getReceptionists,
+  updateReceptionist,
+} from "../controllers/receptionist.controller.js";
+import { isAuthenticated, restrictTo } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/receptionists", getReceptionists);
-router.post("/receptionists", createReceptionist);
-router.patch("/receptionists/:id", updateReceptionist);
-router.patch("/receptionists/:id/enable", enableReceptionist);
-router.patch("/receptionists/:id/disable", disableReceptionist);
+router.use(isAuthenticated);
+
+router.get("/dashboard", restrictTo("RECEPTIONIST"), getReceptionistDashboard);
+
+router.use(restrictTo("SUPER_ADMIN"));
+router.get("/", getReceptionists);
+router.post("/", createReceptionist);
+router.patch("/:id", updateReceptionist);
+router.patch("/:id/enable", enableReceptionist);
+router.patch("/:id/disable", disableReceptionist);
 
 export default router;

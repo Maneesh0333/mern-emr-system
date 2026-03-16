@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import {
   useAddOrUpdateSchedule,
   type Schedule,
-} from "../../hooks/Admin/useSchedule";
+} from "../../hooks/Doctor/useSchedule";
 
 // Days of the week options
 const dayOptions = [
@@ -136,15 +136,20 @@ export default function ScheduleForm({ schedule, closeSheet }: Props) {
             <InputField
               label="Start Time"
               type="time"
-              {...register("start")}
+              name="start"
+              register={register}
               errors={errors}
+              inputClassName="!px-3 !py-2 text-sm"
             />
             <InputField
               label="End Time"
               type="time"
-              {...register("end")}
+              name="end"
+              register={register}
               errors={errors}
+              inputClassName="!px-3 !py-2 text-sm"
             />
+
             <div>
               <label className="text-sm font-medium">Slot Duration</label>
               <select

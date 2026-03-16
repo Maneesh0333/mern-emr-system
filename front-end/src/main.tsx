@@ -14,10 +14,8 @@ import Schedule from "./components/Admin/Schedule";
 import Doctor from "./pages/Doctor";
 import Receptionist from "./pages/Receptionist";
 import Scheduler from "./components/Shared/Scheduler";
-import AppointmentList from "./components/AppointmentList";
 import ReceptionistDashboard from "./components/ReceptionistDashboard";
 import Appointments from "./components/Admin/Appointments";
-import DoctorAppointments from "./components/Doctor/DoctorAppointments";
 import DoctorDashboard from "./components/Doctor/DoctorDashboard";
 import RoleRedirect from "./components/Shared/RoleRedirect";
 import { useAuthStore } from "./stores/authStore";
@@ -57,6 +55,10 @@ const router = createBrowserRouter([
         path: "receptionists",
         element: <Receptionists />,
       },
+      {
+        path: "schedule",
+        element: <Scheduler />,
+      },
     ],
   },
   {
@@ -77,7 +79,7 @@ const router = createBrowserRouter([
       },
       {
         path: "appointments",
-        element: <AppointmentList />,
+        element: <Appointments />,
       },
     ],
   },
@@ -95,7 +97,7 @@ const router = createBrowserRouter([
       },
       {
         path: "appointments",
-        element: <DoctorAppointments />,
+        element: <Appointments />,
       },
       {
         path: "schedule",

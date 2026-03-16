@@ -11,6 +11,7 @@ export type Doctor = {
 
 type DoctorsResponse = {
   success: boolean;
+  message: string;
   data: Doctor[];
 };
 
@@ -18,7 +19,7 @@ export const useDoctors = (department?: string) => {
   return useQuery({
     queryKey: ["doctors", department],
     queryFn: async () => {
-      const { data } = await axiosApi.get<DoctorsResponse>("/doctor", {
+      const { data } = await axiosApi.get<DoctorsResponse>("/doctors/available", {
         params: { department },
       });
 

@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from "axios";
+import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 import { useAuthStore } from "../stores/authStore";
 
 const axiosApi = axios.create({
@@ -28,7 +28,7 @@ let refreshPromise: Promise<string> | null = null;
 
 axiosApi.interceptors.response.use(
   (res) => res,
-  async (error) => {
+  async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfigWithRetry;
 
     if (
@@ -44,9 +44,7 @@ axiosApi.interceptors.response.use(
             .post("/auth/refresh-token")
             .then((res) => {
               const newToken = res.data.accessToken;
-
               useAuthStore.getState().setAccessToken(newToken);
-
               return newToken;
             })
             .finally(() => {
@@ -56,13 +54,17 @@ axiosApi.interceptors.response.use(
 
         const newToken = await refreshPromise;
 
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        }
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newToken}`,
+        };
 
         return axiosApi(originalRequest);
       } catch (err) {
-        useAuthStore.getState().logout();
+        if (useAuthStore.getState().accessToken) {
+          useAuthStore.getState().logout();
+        }
+
         return Promise.reject(err);
       }
     }

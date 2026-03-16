@@ -2,6 +2,7 @@ import {
   useUpdateAppointmentStatus,
   type Appointment,
 } from "../../hooks/Admin/useAppointments";
+import { useAuthStore } from "../../stores/authStore";
 import { ActionButton } from "../Shared/ActionButton";
 
 type Props = {
@@ -9,6 +10,8 @@ type Props = {
 };
 
 export default function AppointmentsRow({ item }: Props) {
+  const user = useAuthStore((state) => state.user);
+
   const updateStatus = useUpdateAppointmentStatus();
 
   const isCompleting =
@@ -25,10 +28,24 @@ export default function AppointmentsRow({ item }: Props) {
     <tr className="border-t border-[var(--border-1)]">
       <td className="px-4 py-4">{item.patientName}</td>
       <td className="px-4 py-4">{item.phone}</td>
-      <td className="px-4 py-4">{item.doctor?.name}</td>
-      <td className="px-4 py-4">{item.doctor?.department}</td>
-      <td className="px-4 py-4">{item.date}</td>
-      <td className="px-4 py-4">{item.time}</td>
+      {user?.role !== "DOCTOR" && (
+        <>
+          <td className="px-4 py-4">{item.doctor?.name}</td>
+          <td className="px-4 py-4">{item.doctor?.department}</td>
+        </>
+      )}
+      <td className="px-4 py-4">
+        {new Date(item.appointmentTime).toLocaleDateString("en-IN", {
+          dateStyle: "short",
+        })}
+      </td>
+      <td className="px-4 py-4">
+        {new Date(item.appointmentTime).toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}
+      </td>
 
       <td className="px-4 py-4">
         <span
@@ -49,11 +66,7 @@ export default function AppointmentsRow({ item }: Props) {
           <>
             <ActionButton
               variant="success"
-              isLoading={
-                updateStatus.isPending &&
-                updateStatus.variables?.id === item._id &&
-                updateStatus.variables?.status === "completed"
-              }
+              isLoading={isCompleting}
               disabled={updateStatus.isPending}
               onClick={() =>
                 updateStatus.mutate({
@@ -67,11 +80,7 @@ export default function AppointmentsRow({ item }: Props) {
 
             <ActionButton
               variant="danger"
-              isLoading={
-                updateStatus.isPending &&
-                updateStatus.variables?.id === item._id &&
-                updateStatus.variables?.status === "cancelled"
-              }
+              isLoading={isCancelling}
               disabled={updateStatus.isPending}
               onClick={() =>
                 updateStatus.mutate({

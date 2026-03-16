@@ -6,25 +6,51 @@ import Table from "../Shared/Table";
 import { getChips } from "../../utils/Filterschips";
 import AppointmentsRow from "./AppointmentsRow";
 import { useAppointments } from "../../hooks/Admin/useAppointments";
+import { useAuthStore } from "../../stores/authStore";
 
 export default function Appointments() {
+  const user = useAuthStore((state) => state.user);
+
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const { data, isLoading, isError } = useAppointments(activeFilter, search);
-
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading appointments</p>;
+  const { data, isLoading, isError } = useAppointments(
+    activeFilter,
+    search,
+    date,
+  );
 
   const appointments = data?.appointments ?? [];
 
-  const chips = getChips(data?.stats, data?.totalAppointments);
+  const chips = getChips(
+    data?.stats ?? {
+      scheduled: 0,
+      completed: 0,
+      cancelled: 0,
+    },
+    data?.totalAppointments ?? 0,
+  );
+
+  if (isError) return <p>Error loading appointments</p>;
 
   return (
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
         title="Appointments"
-        description={`${data?.totalAppointments} total appointments`}
+        description={`${data?.totalAppointments ?? 0} total appointments`}
+        children={
+          <input
+            type="date"
+            min={new Date().toISOString().split("T")[0]}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="px-3 py-2 rounded-xl
+  border border-[rgba(196,99,42,0.2)]
+  focus:outline-none focus:border-[var(--clay)]
+  bg-white"
+          />
+        }
       />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -43,17 +69,23 @@ export default function Appointments() {
       </div>
 
       <Table
-        headers={[
-          "Patient",
-          "Phone",
-          "Doctor",
-          "Department",
-          "Date",
-          "Time",
-          "Status",
-          "Actions",
-        ]}
+        headers={
+          user?.role === "DOCTOR"
+            ? ["Patient", "Phone", "Date", "Time", "Status", "Actions"]
+            : [
+                "Patient",
+                "Phone",
+                "Doctor",
+                "Department",
+                "Date",
+                "Time",
+                "Status",
+                "Actions",
+              ]
+        }
         data={appointments}
+        isLoading={isLoading}
+        emptyMessage="No Appointments "
         colSpan={8}
         renderRow={(item) => <AppointmentsRow key={item._id} item={item} />}
       />

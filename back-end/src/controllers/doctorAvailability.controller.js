@@ -2,18 +2,17 @@ import { asyncHandler } from "../middleware/async.middleware";
 import DoctorAvailability from "../models/DoctorAvailability.model";
 
 export const saveAvailability = asyncHandler(async (req, res) => {
-
   const { unavailableDates } = req.body;
   const doctorId = req.user.id;
 
   let availability = await DoctorAvailability.findOne({
-    doctor: doctorId
+    doctor: doctorId,
   });
 
   if (!availability) {
     availability = await DoctorAvailability.create({
       doctor: doctorId,
-      unavailableDates
+      unavailableDates,
     });
   } else {
     availability.unavailableDates = unavailableDates;
@@ -26,85 +25,77 @@ export const saveAvailability = asyncHandler(async (req, res) => {
   });
 });
 
-
 export const getAvailability = asyncHandler(async (req, res) => {
   const doctorId = req.user.id;
   const availability = await DoctorAvailability.findOne({
-    doctor: doctorId
+    doctor: doctorId,
   });
 
   res.status(200).json({
     success: true,
-    data: availability?.unavailableDates || []
+    data: availability?.unavailableDates || [],
   });
 });
 
+export const getDoctorSlots = asyncHandler(async (req, res) => {
+  const { doctorId, date } = req.query;
 
-export const getDoctorSlots = asyncHandler(async (req,res)=>{
+  const allSlots = generateSlots("09:00", "17:00", 30);
 
- const {doctorId,date} = req.query;
+  const booked = await Appointment.find({
+    doctor: doctorId,
+    date,
+    status: "Booked",
+  }).select("time");
 
- const allSlots = generateSlots("09:00","17:00",30);
+  const bookedTimes = booked.map((b) => b.time);
 
- const booked = await Appointment.find({
-  doctor:doctorId,
-  date,
-  status:"Booked"
- }).select("time");
+  const slots = allSlots.map((slot) => ({
+    time: slot,
+    status: bookedTimes.includes(slot) ? "Booked" : "Available",
+  }));
 
- const bookedTimes = booked.map(b=>b.time);
-
- const slots = allSlots.map(slot=>({
-  time:slot,
-  status: bookedTimes.includes(slot) ? "Booked" : "Available"
- }));
-
- res.json({
-  success:true,
-  slots
- });
-
+  res.json({
+    success: true,
+    slots,
+  });
 });
 
-export const bookAppointment = asyncHandler(async(req,res)=>{
+export const bookAppointment = asyncHandler(async (req, res) => {
+  const { doctorId, date, phone, appointmentTime, reason, patientName, department } = req.body;
 
- const {doctorId,date,time,patientName,department} = req.body;
+  const exists = await Appointment.findOne({
+    doctor: doctorId,
+    date,
+    time,
+    status: "Booked",
+  });
 
- const exists = await Appointment.findOne({
-  doctor:doctorId,
-  date,
-  time,
-  status:"Booked"
- });
+  if (exists) {
+    throw new AppError("Slot already booked", 400);
+  }
 
- if(exists){
-  throw new AppError("Slot already booked",400);
- }
+  await Appointment.create({
+    doctor: doctorId,
+    patientName,
+    department,
+    date,
+    time,
+  });
 
- await Appointment.create({
-  doctor:doctorId,
-  patientName,
-  department,
-  date,
-  time
- });
-
- res.json({
-  success:true,
-  message:"Appointment booked"
- });
-
+  res.json({
+    success: true,
+    message: "Appointment booked",
+  });
 });
 
-export const getDoctorAppointments = asyncHandler(async(req,res)=>{
+export const getDoctorAppointments = asyncHandler(async (req, res) => {
+  const appointments = await Appointment.find({
+    doctor: req.user.id,
+  }).sort({ date: 1, time: 1 });
 
- const appointments = await Appointment.find({
-  doctor:req.user.id
- }).sort({date:1,time:1});
-
- res.json({
-  success:true,
-  data:appointments
- });
-
+  res.json({
+    success: true,
+    data: appointments,
+  });
 });

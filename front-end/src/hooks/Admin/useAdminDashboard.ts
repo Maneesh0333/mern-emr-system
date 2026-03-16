@@ -18,7 +18,7 @@ type ApiResponse = {
 };
 
 export const useAdminDashboard = () => {
-  return useQuery({
+  return useQuery<DashboardStats>({
     queryKey: ["admin-dashboard"],
 
     queryFn: async () => {

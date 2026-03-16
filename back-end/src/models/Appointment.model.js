@@ -11,25 +11,48 @@ const appointmentSchema = new mongoose.Schema(
     patientName: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
 
     phone: {
       type: String,
       required: true,
+      trim: true,
+      match: [/^[0-9]{10,15}$/, "Phone number must be 10 to 15 digits"],
     },
 
-    age: Number,
-
-    reason: String,
-
-    date: {
-      type: String, // YYYY-MM-DD
+    age: {
+      type: Number,
       required: true,
+      min: 0,
+      max: 120,
     },
 
-    time: {
-      type: String, // HH:mm
+    reason: {
+      type: String,
       required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+    },
+
+    appointmentTime: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: (value) => value > new Date(),
+        message: "Appointment time must be in the future",
+      },
+    },
+
+    department: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
 
     status: {
@@ -38,14 +61,10 @@ const appointmentSchema = new mongoose.Schema(
       default: "scheduled",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// prevent double booking
-appointmentSchema.index(
-  { doctor: 1, date: 1, time: 1 },
-  { unique: true }
-);
+appointmentSchema.index({ doctor: 1, appointmentTime: 1 }, { unique: true });
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);
 export default Appointment;

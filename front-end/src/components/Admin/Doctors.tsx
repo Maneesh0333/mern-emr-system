@@ -28,18 +28,23 @@ export default function Doctors() {
   const enableMutation = useEnableDoctor();
   const disableMutation = useDisableDoctor();
 
-  if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading doctors</p>;
 
   const doctors = data?.doctors ?? [];
 
-  const chips = getChips(data?.stats, data?.totalDoctors);
+  const chips = getChips(
+    data?.stats ?? {
+      Active: 0,
+      Inactive: 0,
+    },
+    data?.totalDoctors ?? 0,
+  );
 
   return (
     <div className="flex-1 p-6 space-y-6 bg-[#FAF5ED] text-[#2C1A0E] overflow-y-auto">
       <Header
         title="Doctors"
-        description={`${data?.totalDoctors} registered doctors`}
+        description={`${data?.totalDoctors ?? 0} registered doctors`}
         children={
           <Button
             label="+ Add Doctor"
@@ -78,6 +83,8 @@ export default function Doctors() {
         ]}
         data={doctors}
         colSpan={7}
+        emptyMessage="No Doctors"
+        isLoading={isLoading}
         renderRow={(item) => (
           <DoctorsRow
             key={item._id}

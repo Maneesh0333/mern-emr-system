@@ -13,7 +13,7 @@ export default function QuickActions({
   return (
     <div className="bg-[var(--earth)] p-4 rounded-xl border border-[rgba(196,99,42,0.12)]">
       <div className="font-semibold mb-3 text-[var(--warm-white)]">
-        Admin Actions
+        Quick Actions
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

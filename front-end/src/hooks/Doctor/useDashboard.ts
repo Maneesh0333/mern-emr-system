@@ -12,7 +12,7 @@ export const useDoctorDashboard = () => {
   return useQuery({
     queryKey: ["doctor-dashboard"],
     queryFn: async () => {
-      const { data } = await axiosApi.get("/doctor/dashboard");
+      const { data } = await axiosApi.get("/doctors/dashboard");
       return data.data as Dashboard;
     },
   });

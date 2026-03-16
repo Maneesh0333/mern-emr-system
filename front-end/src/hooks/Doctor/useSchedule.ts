@@ -14,7 +14,6 @@ export type Schedule = {
   working: boolean;
   createdAt: string;
   updatedAt: string;
-  __v: number; // Mongoose version key
 };
 
 // API response
@@ -29,26 +28,23 @@ export type ResponseType = {
   message: string;
 };
 
-// ---------- Fetch Schedules ----------
 export const useSchedules = () => {
   return useQuery({
     queryKey: ["schedules"],
     queryFn: async () => {
-      const { data } = await axiosApi.get<GetSchedulesResponse>("/schedule");
+      const { data } = await axiosApi.get<GetSchedulesResponse>("/doctors/me/schedule");
       return data.data ?? [];
     },
-    initialData: [],
   });
 };
 
-// ---------- Add or Update Schedule ----------
 export const useAddOrUpdateSchedule = () => {
   const queryClient = useQueryClient();
 
   return useMutation<ResponseType, AxiosError<ResponseType>, ScheduleFormData>({
     mutationFn: async (formData) => {
       const { data } = await axiosApi.post<ResponseType>(
-        "/schedule", // Your backend route
+        "/doctors/me/schedule", 
         formData,
       );
       return data;

@@ -7,8 +7,7 @@ export type Appointment = {
   _id: string;
   patientName: string;
   phone: string;
-  date: string;
-  time: string;
+  appointmentTime: string;
   status: "scheduled" | "completed" | "cancelled";
   doctor: {
     name: string;
@@ -31,27 +30,22 @@ type ApiResponse = {
   data: AppointmentsResponse;
 };
 
-export const useAppointments = (status: string, search: string) => {
+export const useAppointments = (
+  status: string,
+  search: string,
+  date: string,
+) => {
   return useQuery({
-    queryKey: ["appointments", status, search],
+    queryKey: ["appointments", status, search, date],
 
     queryFn: async () => {
-      const { data } = await axiosApi.get<ApiResponse>("/admin/appointments", {
-        params: { status, search },
+      const { data } = await axiosApi.get<ApiResponse>("/appointments", {
+        params: { status, search, date },
       });
 
       return data.data;
     },
-
-    initialData: {
-      appointments: [],
-      totalAppointments: 0,
-      stats: {
-        scheduled: 0,
-        completed: 0,
-        cancelled: 0,
-      },
-    },
+    placeholderData: (prev) => prev,
   });
 };
 
@@ -70,8 +64,8 @@ export const useUpdateAppointmentStatus = () => {
   >({
     mutationFn: async ({ id, status }) => {
       const { data } = await axiosApi.patch<ResponseType>(
-        `/admin/appointments/${id}/status`,
-        { status }
+        `/appointments/${id}/status`,
+        { status },
       );
       return data;
     },
@@ -91,7 +85,6 @@ export const useUpdateAppointmentStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["doctor-appointments"],
       });
-
     },
 
     onError: (error) => {

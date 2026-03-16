@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import AppError from "../utils/AppError.js";
 import { asyncHandler } from "../middleware/async.middleware.js";
 import bcrypt from "bcryptjs";
+import Appointment from "../models/appointment.model.js";
 
 export const createReceptionist = asyncHandler(async (req, res) => {
   const { name, email, password, department = "" } = req.body;
@@ -40,60 +41,65 @@ export const getReceptionists = asyncHandler(async (req, res) => {
   const limitNum = Math.max(parseInt(limit), 1);
   const skip = (pageNum - 1) * limitNum;
 
-  const matchStage = {
+  const baseMatch = {
     role: "RECEPTIONIST",
   };
 
+  const filteredMatch = { ...baseMatch };
+
   if (status !== "All") {
-    matchStage.status = status;
+    filteredMatch.status = status;
   }
 
   if (search) {
-    matchStage.$or = [
+    filteredMatch.$or = [
       { name: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
       { department: { $regex: search, $options: "i" } },
     ];
   }
 
-  const pipeline = [];
-
-  pipeline.push({ $match: matchStage });
-
-  pipeline.push({
-    $facet: {
-      receptionists: [
-        { $sort: { createdAt: -1 } },
-        { $skip: skip },
-        { $limit: limitNum },
-
-        {
-          $project: {
-            name: 1,
-            email: 1,
-            department: 1,
-            status: 1,
-            createdAt: 1,
+  const result = await User.aggregate([
+    {
+      $facet: {
+        receptionists: [
+          { $match: filteredMatch },
+          { $sort: { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limitNum },
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              department: 1,
+              status: 1,
+              createdAt: 1,
+            },
           },
-        },
-      ],
+        ],
 
-      stats: [
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
+        totalFiltered: [
+          { $match: filteredMatch },
+          { $count: "count" },
+        ],
+
+        stats: [
+          { $match: baseMatch }, // only role filter
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+            },
           },
-        },
-      ],
+        ],
 
-      totalFiltered: [{ $count: "count" }],
-
-      totalReceptionists: [{ $count: "count" }],
+        totalReceptionists: [
+          { $match: baseMatch },
+          { $count: "count" },
+        ],
+      },
     },
-  });
-
-  const result = await User.aggregate(pipeline);
+  ]);
 
   const receptionists = result[0].receptionists;
 
@@ -143,7 +149,6 @@ export const enableReceptionist = asyncHandler(async (req, res) => {
   });
 });
 
-
 export const disableReceptionist = asyncHandler(async (req, res) => {
   const receptionist = await User.findById(req.params.id);
 
@@ -186,3 +191,41 @@ export const updateReceptionist = asyncHandler(async (req, res) => {
   });
 });
 
+export const getReceptionistDashboard = asyncHandler(async (req, res) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const [totalToday, waiting, completed, cancelled] = await Promise.all([
+    Appointment.countDocuments({
+      appointmentTime: { $gte: start, $lte: end },
+    }),
+
+    Appointment.countDocuments({
+      appointmentTime: { $gte: start, $lte: end },
+      status: "scheduled",
+    }),
+
+    Appointment.countDocuments({
+      appointmentTime: { $gte: start, $lte: end },
+      status: "completed",
+    }),
+
+    Appointment.countDocuments({
+      appointmentTime: { $gte: start, $lte: end },
+      status: "cancelled",
+    }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      todayAppointments: totalToday,
+      waiting,
+      completed,
+      cancelled,
+    },
+  });
+});

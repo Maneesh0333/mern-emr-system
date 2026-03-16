@@ -17,4 +17,3 @@ export const loginSchema = yup
       .matches(/[0-9]/, "Password must contain at least one number"),
   })
   .noUnknown(true, "Unknown fields are not allowed");
-

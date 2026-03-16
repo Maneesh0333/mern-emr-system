@@ -5,7 +5,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import Session from "../models/Session.model.js";
-import { date } from "yup";
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -27,7 +26,7 @@ export const login = asyncHandler(async (req, res) => {
   const accessToken = jwt.sign(
     { id: user._id, role: user.role },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "1m" },
+    { expiresIn: "15m" },
   );
 
   const refreshToken = jwt.sign(

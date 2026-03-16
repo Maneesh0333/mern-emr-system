@@ -1,14 +1,57 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SidebarNavSection } from "../../pages/Admin";
 import { useAuthStore } from "../../stores/authStore";
 import NavItem from "./NavItem";
+import axiosApi from "../../lib/axios";
+import toast from "react-hot-toast";
+import type { AxiosError } from "axios";
 
 type SidebarProps = {
   sidebarNav: SidebarNavSection[];
 };
 
+type ResponseType = {
+  success: boolean;
+  message: string;
+};
+
 export default function Sidebar({ sidebarNav }: SidebarProps) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation<
+    ResponseType,
+    AxiosError<ResponseType>,
+    void
+  >({
+    mutationFn: async () => {
+      const res = await axiosApi.post<ResponseType>("/auth/logout");
+      return res.data;
+    },
+    onSuccess: (data) => {
+      if (!data.success) {
+        toast.error(data.message || "Logout Failed.");
+        return;
+      }
+      logout();
+      queryClient.clear();
+      toast.success("Logout Success.");
+    },
+    onError: (err) => {
+      if (!err.response) {
+        toast.error("Network error, please try again later.");
+        return;
+      }
+      toast.error(err.response.data.message || "Logout Failed.");
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
   return (
     <aside className="w-72 bg-[#2C1A0E] text-white flex flex-col h-screen">
       {/* TOP */}
@@ -26,9 +69,7 @@ export default function Sidebar({ sidebarNav }: SidebarProps) {
           </div>
 
           <div>
-            <div className="font-semibold leading-tight">
-              {user?.name}
-            </div>
+            <div className="font-semibold leading-tight">{user?.name}</div>
             <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.4)]">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
               {user?.role}
@@ -68,9 +109,21 @@ export default function Sidebar({ sidebarNav }: SidebarProps) {
 
       {/* LOGOUT */}
       <div className="p-3 border-t border-white/10">
-        <button onClick={()=>logout()} className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/40 hover:text-white hover:bg-white/10 rounded-lg w-full transition cursor-pointer">
+        <button
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/40 hover:text-white hover:bg-white/10 rounded-lg w-full transition cursor-pointer disabled:opacity-50"
+        >
           <span className="text-lg">🚪</span>
-          Logout
+          {logoutMutation.isPending ? (
+            <>
+              <span className="flex items-center justify-center w-10">
+                <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              </span>
+            </>
+          ) : (
+            "Logout"
+          )}
         </button>
       </div>
     </aside>

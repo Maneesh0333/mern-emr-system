@@ -1,15 +1,15 @@
 import StatsCard from "./StatsCard";
 
-export type statsDataType = {
+export type StatCard = {
   icon: string;
   label: string;
-  value: string | number;
-  change: string;
-  sub: string;
+  value?: number;
+  change?: string;
+  sub?: string;
 };
 
 type statsDataPropsType = {
-  statsData: statsDataType[];
+  statsData: StatCard[];
 };
 
 export default function StatsGrid({ statsData }: statsDataPropsType) {

@@ -11,7 +11,7 @@ import type {
 
 export type DoctorsStats = {
   Active: number;
-  InActive: number;
+  Inactive: number;
 };
 
 export type Doctor = {
@@ -46,34 +46,13 @@ export const useDoctors = (status: string, search: string) => {
     queryKey: ["doctors", status, search],
 
     queryFn: async () => {
-      const { data } = await axiosApi.get<ApiResponse>("/admin/doctors", {
+      const { data } = await axiosApi.get<ApiResponse>("/doctors", {
         params: { status, search },
       });
 
-      const res = data.data;
-
-      return {
-        page: res.page ?? 1,
-        limit: res.limit ?? 10,
-        total: res.total ?? 0,
-        totalDoctors: res.totalDoctors ?? 0,
-        totalPages: res.totalPages ?? 1,
-        results: res.results ?? 0,
-        stats: res.stats ?? { Active: 0, InActive: 0 },
-        doctors: res.doctors ?? [],
-      };
+      return data.data;
     },
-
-    initialData: {
-      page: 1,
-      limit: 10,
-      total: 0,
-      totalPages: 1,
-      results: 0,
-      totalDoctors: 0,
-      stats: { Active: 0, InActive: 0 },
-      doctors: [],
-    },
+    placeholderData: (prev)=> prev
   });
 };
 
@@ -87,7 +66,7 @@ export const useCreateDoctor = () => {
 
   return useMutation<ResponseType, AxiosError<ResponseType>, CreateDoctorForm>({
     mutationFn: async (formData) => {
-      const res = await axiosApi.post<ResponseType>("/admin/doctors", formData);
+      const res = await axiosApi.post<ResponseType>("/doctors", formData);
       return res.data;
     },
 
@@ -118,7 +97,7 @@ export const useDisableDoctor = () => {
   return useMutation<ResponseType, AxiosError<ResponseType>, string>({
     mutationFn: async (id) => {
       const { data } = await axiosApi.patch<ResponseType>(
-        `/admin/doctors/${id}/disable`,
+        `/doctors/${id}/disable`,
       );
       return data;
     },
@@ -150,7 +129,7 @@ export const useEnableDoctor = () => {
   return useMutation<ResponseType, AxiosError<ResponseType>, string>({
     mutationFn: async (id) => {
       const { data } = await axiosApi.patch<ResponseType>(
-        `/admin/doctors/${id}/enable`,
+        `/doctors/${id}/enable`,
       );
       return data;
     },
@@ -185,10 +164,7 @@ export const useUpdateDoctor = () => {
     { id: string; data: UpdateDoctorForm }
   >({
     mutationFn: async ({ id, data }) => {
-      const res = await axiosApi.patch<ResponseType>(
-        `/admin/doctors/${id}`,
-        data,
-      );
+      const res = await axiosApi.patch<ResponseType>(`/doctors/${id}`, data);
       return res.data;
     },
 

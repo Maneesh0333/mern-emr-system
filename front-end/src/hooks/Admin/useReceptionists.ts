@@ -49,35 +49,13 @@ export const useReceptionists = (status: string, search: string) => {
     queryKey: ["receptionists", status, search],
 
     queryFn: async () => {
-      const { data } = await axiosApi.get<ApiResponse>(
-        "/receptionist/receptionists",
-        { params: { status, search } },
-      );
+      const { data } = await axiosApi.get<ApiResponse>("/receptionists", {
+        params: { status, search },
+      });
 
-      const res = data.data;
-
-      return {
-        page: res.page ?? 1,
-        limit: res.limit ?? 5,
-        total: res.total ?? 0,
-        totalReceptionists: res.totalReceptionists ?? 0,
-        totalPages: res.totalPages ?? 1,
-        results: res.results ?? 0,
-        stats: res.stats ?? { Active: 0, Inactive: 0 },
-        receptionists: res.receptionists ?? [],
-      };
+      return data.data;
     },
-
-    initialData: {
-      page: 1,
-      limit: 5,
-      total: 0,
-      totalReceptionists: 0,
-      totalPages: 1,
-      results: 0,
-      stats: { Active: 0, Inactive: 0 },
-      receptionists: [],
-    },
+    placeholderData: (prev) => prev,
   });
 };
 
@@ -87,7 +65,7 @@ export const useDisableReceptionist = () => {
   return useMutation<ResponseType, AxiosError<ResponseType>, string>({
     mutationFn: async (id) => {
       const { data } = await axiosApi.patch<ResponseType>(
-        `/receptionist/receptionists/${id}/disable`,
+        `/receptionists/${id}/disable`,
       );
       return data;
     },
@@ -121,7 +99,7 @@ export const useEnableReceptionist = () => {
   return useMutation<ResponseType, AxiosError<ResponseType>, string>({
     mutationFn: async (id) => {
       const { data } = await axiosApi.patch<ResponseType>(
-        `/receptionist/receptionists/${id}/enable`,
+        `/receptionists/${id}/enable`,
       );
       return data;
     },
@@ -158,10 +136,7 @@ export const useCreateReceptionist = () => {
     CreateReceptionistForm
   >({
     mutationFn: async (formData) => {
-      const res = await axiosApi.post<ResponseType>(
-        "/receptionist/receptionists",
-        formData,
-      );
+      const res = await axiosApi.post<ResponseType>("/receptionists", formData);
       return res.data;
     },
 
@@ -198,7 +173,7 @@ export const useUpdateReceptionist = () => {
   >({
     mutationFn: async ({ id, data }) => {
       const res = await axiosApi.patch<ResponseType>(
-        `/receptionist/receptionists/${id}`,
+        `/receptionists/${id}`,
         data,
       );
       return res.data;

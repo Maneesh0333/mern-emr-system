@@ -9,7 +9,7 @@ type HeaderProps = {
 
 function Header({ title, description, name, children }: HeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-start justify-between">
       <div>
         <div className="text-2xl font-bold">
           {title}{" "}

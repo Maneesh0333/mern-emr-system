@@ -8,7 +8,7 @@ import type React from "react";
 
 type InputFieldProps<T extends FieldValues> = {
   name?: Path<T>;
-  label: string;
+  label?: string;
   placeholder?: string;
   type?: "text" | "password" | "email" | "number" | "time";
   register?: UseFormRegister<T>;

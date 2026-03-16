@@ -1,6 +1,7 @@
 import QuickActions from "../Shared/QuickActions";
-import StatsGrid from "../Shared/StatsGrid";
+import StatsGrid, { type StatCard } from "../Shared/StatsGrid";
 import { useAdminDashboard } from "../../hooks/Admin/useAdminDashboard";
+import Spinner from "../Shared/Spinner";
 
 export type statsDataType = {
   icon: string;
@@ -39,45 +40,42 @@ const adminActions: QuickAction[] = [
 ];
 
 export default function AdminOverview() {
-  const { data, isLoading } = useAdminDashboard();
+  const {
+    data,
+    isLoading,
+  } = useAdminDashboard();
 
-  const statsData: statsDataType[] = [
+  const statsData: StatCard[] = [
     {
       icon: "👨‍⚕️",
       label: "Doctors",
-      value: String(data?.doctors ?? 0),
+      value: data?.doctors ?? 0,
       change: "",
       sub: "Registered doctors",
     },
     {
       icon: "🧑‍🤝‍🧑",
       label: "Patients",
-      value: String(data?.patients ?? 0),
+      value: data?.patients ?? 0,
       change: "",
       sub: "Total patients",
     },
     {
       icon: "📅",
       label: "Today's Appointments",
-      value: String(data?.todayAppointments ?? 0),
-      change: "",
+      value: data?.todayAppointments,
       sub: "Appointments today",
     },
     {
       icon: "✅",
       label: "Completed",
-      value: String(data?.completedAppointments ?? 0),
-      change: "",
+      value: data?.completedAppointments ?? 0,
       sub: "Completed appointments",
     },
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex-1 p-6">
-        <p>Loading dashboard...</p>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (

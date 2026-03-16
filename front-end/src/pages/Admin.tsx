@@ -48,6 +48,12 @@ export const sidebarNav: SidebarNavSection[] = [
         label: "Receptionists",
         path: "/admin/receptionists",
       },
+      {
+        id: "schedule",
+        icon: "🕒",
+        label: "Schedule",
+        path: "/admin/schedule",
+      },
     ],
   },
 ];
