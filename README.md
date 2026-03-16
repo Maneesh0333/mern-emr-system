@@ -1,5 +1,3 @@
-
-https://github.com/user-attachments/assets/fd47a3a0-4ad8-4957-be07-5bd400301bfc
 # EMR System (Electronic Medical Record)
 A full-stack MERN application for managing hospital appointments, doctor schedules, and patient records.
 
@@ -50,4 +48,4 @@ Add the following variables:
 - NODE_ENV=development
 
 ## 🎥 Demo
-Uploading EMR.mp4…
+https://github.com/user-attachments/assets/fd47a3a0-4ad8-4957-be07-5bd400301bfc
