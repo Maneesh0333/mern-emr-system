@@ -1,15 +1,19 @@
+import { useState } from "react";
 import {
   useUpdateAppointmentStatus,
   type Appointment,
 } from "../../hooks/Admin/useAppointments";
 import { useAuthStore } from "../../stores/authStore";
 import { ActionButton } from "../Shared/ActionButton";
+import SideSheet from "../Shared/SideSheet";
+import PrescriptionForm from "../forms/PrescriptionForm";
 
 type Props = {
   item: Appointment;
 };
 
 export default function AppointmentsRow({ item }: Props) {
+  const [open, setOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
 
   const updateStatus = useUpdateAppointmentStatus();
@@ -91,6 +95,26 @@ export default function AppointmentsRow({ item }: Props) {
             >
               Cancel
             </ActionButton>
+          </>
+        )}
+
+        {user?.role === "DOCTOR" && (
+          <>
+            <ActionButton variant="primary" onClick={() => setOpen(true)}>
+              Prescription
+            </ActionButton>
+
+            <SideSheet
+              open={open}
+              onClose={() => setOpen(false)}
+              title="Add Prescription"
+              discription="Create medicine reminder schedule"
+            >
+              <PrescriptionForm
+                appointment={item}
+                closeSheet={() => setOpen(false)}
+              />
+            </SideSheet>
           </>
         )}
       </td>

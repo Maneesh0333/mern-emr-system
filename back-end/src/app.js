@@ -5,7 +5,8 @@ import adminRoutes from "./routes/admin.routes.js";
 
 import receptionistRoutes from "./routes/receptionist.routes.js";
 import appointmentRoutes from "./routes/appointment.routes.js";
-import departmentsRoutes from "./routes/departments.routes.js";
+import departmentRoutes from "./routes/departments.routes.js";
+import prescriptionRoutes from "./routes/prescription.routes.js";
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -31,7 +32,8 @@ app.use("/doctors", doctorRoutes);
 app.use("/admin", adminRoutes);
 app.use("/receptionists", receptionistRoutes);
 app.use("/appointments", appointmentRoutes);
-app.use("/departments", departmentsRoutes);
+app.use("/departments", departmentRoutes);
+app.use("/prescriptions", prescriptionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

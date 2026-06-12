@@ -10,7 +10,6 @@ const RoleRedirect = () => {
   if (!accessToken) return <Navigate to="/auth" replace />;
   if (!user) return <div>Loading...</div>;
 
-  console.log(user, "user-------")
   switch (user?.role) {
     case "SUPER_ADMIN":
       return <Navigate to="/admin" replace />;

@@ -86,7 +86,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
 
         <button
           onClick={() => onPageChange(page + 1)}
-          disabled={page === totalPages}
+          disabled={page === totalPages || totalPages === 0}
           className="px-3 py-1 rounded-md border border-[#E5DED3] bg-white hover:bg-[#F3ECE3] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           Next

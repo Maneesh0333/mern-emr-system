@@ -21,7 +21,7 @@ export default function DoctorAppointmentRow({ item }: Props) {
 
   return (
     <tr className="border-t border-[var(--border-1)]">
-      <td className="px-4 py-4">{item.patientName}</td>
+      <td className="px-4 py-4">{item.patientName+ "----"}</td>
       <td className="px-4 py-4">{item.phone}</td>
       <td className="px-4 py-4">{item.date}</td>
       <td className="px-4 py-4">{item.time}</td>
